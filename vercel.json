@@ -1,0 +1,31 @@
+# Vercel Deployment Configuration
+version: 2
+buildCommand: npm run build
+outputDirectory: dist
+framework: vite
+installCommand: npm install
+
+# Environment Variables (set in Vercel Dashboard)
+env:
+  VITE_GEMINI_API_KEY:
+    required: true
+    type: secret
+
+# Build settings
+build:
+  env:
+    NODE_VERSION: "18"
+
+# Routes for SPA
+routes:
+  - src: /(.*)\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)
+    headers:
+      cache-control: public, max-age=31536000, immutable
+  - src: /(.*)
+    dest: /index.html
+
+# Functions (API routes if needed in future)
+functions:
+  api/**/*.ts:
+    memory: 1024
+    maxDuration: 10

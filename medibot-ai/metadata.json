@@ -1,0 +1,7 @@
+{
+  "name": "MediBot AI",
+  "description": "A healthcare-focused chatbot with multimodal speech and text capabilities powered by Gemini.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
