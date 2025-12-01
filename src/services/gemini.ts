@@ -66,11 +66,13 @@ export const sendToGemini = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: {
-        role: 'user',
-        parts: parts
-      },
+      model: 'gemini-1.5-flash-latest',
+      contents: [
+        {
+          role: 'user',
+          parts: parts
+        }
+      ],
       config: {
         systemInstruction: systemInstruction,
         temperature: 0.7,
@@ -88,6 +90,11 @@ export const sendToGemini = async (
     // Check if it's a rate limit error
     if (error?.message?.includes('429') || error?.message?.includes('quota') || error?.message?.includes('RESOURCE_EXHAUSTED')) {
       throw new Error('⏱️ Rate limit exceeded. Please wait a moment and try again. The free tier has limited requests per minute.');
+    }
+    
+    // Check if it's a model not found error
+    if (error?.message?.includes('404') || error?.message?.includes('NOT_FOUND')) {
+      throw new Error('Model error. Please check your API key is valid and has access to Gemini models.');
     }
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -157,8 +164,13 @@ export const generateSpecializedContent = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: prompt,
+      model: 'gemini-1.5-flash-latest',
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }]
+        }
+      ],
       config: {
         temperature: 0.8,
       }
@@ -190,10 +202,13 @@ export const textToSpeech = async (text: string): Promise<string> => {
     const truncatedText = text.length > 300 ? text.substring(0, 300) + '...' : text;
     
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: {
-        parts: [{ text: truncatedText }]
-      },
+      model: 'gemini-1.5-flash-latest',
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: truncatedText }]
+        }
+      ],
       config: {
         responseModalities: [Modality.AUDIO],
         speechConfig: {
