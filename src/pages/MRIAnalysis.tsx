@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { mriLabels } from '@/lib/mockData';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { toast } from 'sonner';
+
+const MAX_FILE_SIZE_MB = 10;
 
 interface AnalysisResult {
   label: string;
@@ -12,6 +16,7 @@ interface AnalysisResult {
 }
 
 export default function MRIAnalysis() {
+  usePageTitle('MRI Analysis');
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -22,10 +27,32 @@ export default function MRIAnalysis() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', {
+          description: 'Please upload an image file (JPG, PNG, etc.)',
+        });
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        toast.error('File too large', {
+          description: `Please upload an image smaller than ${MAX_FILE_SIZE_MB}MB (selected: ${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+        });
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (event) => {
         setImage(event.target?.result as string);
         setResult(null);
+        toast.success('Scan uploaded', {
+          description: 'Your MRI scan is ready for analysis.',
+        });
+      };
+      reader.onerror = () => {
+        toast.error('Upload failed', {
+          description: 'Could not read the file. Please try a different image.',
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -55,6 +82,10 @@ export default function MRIAnalysis() {
       label,
       confidence,
       description: descriptions[label] || 'Analysis complete.',
+    });
+
+    toast.success('Analysis complete', {
+      description: `Result: ${label} (${confidence}% confidence). +${Math.floor(confidence / 10)} points earned.`,
     });
 
     // Update gamification

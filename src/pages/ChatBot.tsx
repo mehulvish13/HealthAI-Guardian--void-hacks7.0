@@ -10,9 +10,11 @@ import { ChatMessage, LoadingState, Role } from '@/types/chatbot';
 import { sendToGemini, textToSpeech, generateSpecializedContent } from '@/services/gemini';
 import { blobToBase64 } from '@/utils/audio';
 import { getDefinitions, detectEmergency } from '@/data/index';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 
 export default function ChatBot() {
+  usePageTitle('Dr. AI Chat');
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
@@ -30,6 +32,12 @@ export default function ChatBot() {
   const [modalContent, setModalContent] = useState('');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Blob URLs created for voice messages / TTS playback - revoked on unmount
+  const audioUrlsRef = useRef<string[]>([]);
+
+  const trackAudioUrl = (url: string | undefined) => {
+    if (url) audioUrlsRef.current.push(url);
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -38,6 +46,21 @@ export default function ChatBot() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, loadingState]);
+
+  // Revoke voice/TTS blob URLs when leaving the chat
+  useEffect(() => {
+    const urls = audioUrlsRef.current;
+    return () => {
+      urls.forEach(url => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          /* already revoked */
+        }
+      });
+      urls.length = 0;
+    };
+  }, []);
 
   const handleSendMessage = useCallback(async (text: string, audioBlob?: Blob) => {
     const userMsgId = Date.now().toString();
@@ -56,6 +79,7 @@ export default function ChatBot() {
       relatedTerms: userTerms,
       isEmergency
     };
+    trackAudioUrl(newUserMsg.audioUrl);
 
     setMessages(prev => [...prev, newUserMsg]);
 
@@ -106,6 +130,7 @@ export default function ChatBot() {
         audioUrl: audioResponseUrl,
         relatedTerms: responseTerms
       };
+      trackAudioUrl(newModelMsg.audioUrl);
 
       setMessages(prev => [...prev, newModelMsg]);
     } catch (error) {

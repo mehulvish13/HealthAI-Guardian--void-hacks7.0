@@ -1,31 +1,53 @@
-# Vercel Deployment Configuration
-version: 2
-buildCommand: npm run build
-outputDirectory: dist
-framework: vite
-installCommand: npm install
-
-# Environment Variables (set in Vercel Dashboard)
-env:
-  VITE_GEMINI_API_KEY:
-    required: true
-    type: secret
-
-# Build settings
-build:
-  env:
-    NODE_VERSION: "18"
-
-# Routes for SPA
-routes:
-  - src: /(.*)\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)
-    headers:
-      cache-control: public, max-age=31536000, immutable
-  - src: /(.*)
-    dest: /index.html
-
-# Functions (API routes if needed in future)
-functions:
-  api/**/*.ts:
-    memory: 1024
-    maxDuration: 10
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://generativelanguage.googleapis.com https://*.googleapis.com; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(self), microphone=(self), geolocation=()"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
+}

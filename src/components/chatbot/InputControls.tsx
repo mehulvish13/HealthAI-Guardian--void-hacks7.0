@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Square, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 interface InputControlsProps {
   onSendMessage: (text: string, audioBlob?: Blob) => void;
@@ -15,15 +16,27 @@ export const InputControls: React.FC<InputControlsProps> = ({ onSendMessage, isL
   const [isTyping, setIsTyping] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
 
-  // Cleanup timers on unmount
+  // Cleanup timers AND any live recording on unmount so the mic
+  // doesn't stay on if the user navigates away mid-recording.
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      try {
+        mediaRecorderRef.current?.stream.getTracks().forEach(track => track.stop());
+      } catch {
+        /* recorder already released */
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+      mediaRecorderRef.current = null;
     };
   }, []);
 
@@ -35,6 +48,7 @@ export const InputControls: React.FC<InputControlsProps> = ({ onSendMessage, isL
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       
       // Check for supported MIME types
       const mimeType = MediaRecorder.isTypeSupported('audio/webm') 
@@ -58,15 +72,17 @@ export const InputControls: React.FC<InputControlsProps> = ({ onSendMessage, isL
         if (audioBlob.size > 0) {
           onSendMessage('', audioBlob);
         } else {
-          alert('Recording was too short. Please try again.');
+          toast.error('Recording was too short. Please try again.');
         }
         stream.getTracks().forEach(track => track.stop());
+        if (streamRef.current === stream) streamRef.current = null;
       };
 
       mediaRecorder.onerror = (error) => {
         console.error("MediaRecorder error:", error);
-        alert('Recording error occurred. Please try again.');
+        toast.error('Recording error occurred. Please try again.');
         stream.getTracks().forEach(track => track.stop());
+        if (streamRef.current === stream) streamRef.current = null;
         setIsRecording(false);
       };
 
@@ -82,11 +98,11 @@ export const InputControls: React.FC<InputControlsProps> = ({ onSendMessage, isL
       console.error("Error accessing microphone:", error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       if (errorMessage.includes('Permission denied') || errorMessage.includes('NotAllowedError')) {
-        alert("Microphone access denied. Please allow microphone permissions in your browser settings.");
+        toast.error('Microphone access denied. Please allow microphone permissions in your browser settings.');
       } else if (errorMessage.includes('NotFoundError')) {
-        alert("No microphone found. Please connect a microphone and try again.");
+        toast.error('No microphone found. Please connect a microphone and try again.');
       } else {
-        alert(`Could not access microphone: ${errorMessage}`);
+        toast.error(`Could not access microphone: ${errorMessage}`);
       }
     }
   };

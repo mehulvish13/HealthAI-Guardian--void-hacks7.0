@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { ChatMessage, Role } from '@/types/chatbot';
 import { Bot, User, Play, Pause, BookOpen, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -83,14 +84,20 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
           {message.content ? (
              <div className="prose prose-sm max-w-none dark:prose-invert">
                 <ReactMarkdown
+                  rehypePlugins={[rehypeSanitize]}
+                  urlTransform={(url) =>
+                    /^(https?:|mailto:|tel:|#|\/)/.test(url) ? url : ''
+                  }
                   components={{
                     // Prevent images from breaking layout
-                    img: ({node, ...props}) => <img {...props} style={{ maxWidth: '100%', height: 'auto' }} />,
+                    img: ({node, ...props}) => <img {...props} style={{ maxWidth: '100%', height: 'auto' }} referrerPolicy="no-referrer" />,
                     // Better code blocks
-                    code: ({node, inline, ...props}) => (
-                      inline 
-                        ? <code className="px-1 py-0.5 rounded bg-muted text-xs" {...props} />
-                        : <code className="block p-2 rounded bg-muted overflow-x-auto text-xs" {...props} />
+                    code: ({node, className, children, ...props}: any) => (
+                      <code className={className ? `block p-2 rounded bg-muted overflow-x-auto text-xs ${className}` : "px-1 py-0.5 rounded bg-muted text-xs"} {...props}>{children}</code>
+                    ),
+                    // Block javascript: links even if sanitizer missed
+                    a: ({node, href, children, ...props}) => (
+                      <a href={href} target="_blank" rel="noopener noreferrer nofollow" {...props}>{children}</a>
                     ),
                   }}
                 >

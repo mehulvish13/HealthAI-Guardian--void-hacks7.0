@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 type GameType = 'breathing' | 'bubble' | 'zen' | null;
 
 export default function StressReliefGames() {
+  usePageTitle('Stress Relief');
   const [selectedGame, setSelectedGame] = useState<GameType>(null);
   const [totalMinutes, setTotalMinutes] = useState(0);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);

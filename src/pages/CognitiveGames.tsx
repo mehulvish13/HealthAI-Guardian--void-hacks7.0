@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 type GameType = 'memory' | 'pattern' | 'sequence' | null;
 
@@ -17,6 +18,7 @@ interface Card {
 const emojis = ['🧠', '❤️', '🌟', '🎯', '🔔', '🌈', '🎨', '🎭'];
 
 export default function CognitiveGames() {
+  usePageTitle('Brain Games');
   const [selectedGame, setSelectedGame] = useState<GameType>(null);
   const [totalScore, setTotalScore] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
@@ -230,7 +232,9 @@ function MemoryGame({ onComplete }: { onComplete: (score: number) => void }) {
           const newMatches = m + 1;
           if (newMatches === emojis.length) {
             setGameComplete(true);
-            const score = Math.max(100 - moves * 2 - Math.floor(timer / 5), 20);
+            // `moves` state hasn't updated yet (setMoves above is async),
+            // so include the current move explicitly.
+            const score = Math.max(100 - (moves + 1) * 2 - Math.floor(timer / 5), 20);
             onComplete(score);
             toast.success(`Congratulations! +${score} points`);
           }

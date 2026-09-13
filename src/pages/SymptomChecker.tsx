@@ -3,6 +3,9 @@ import { Stethoscope, AlertTriangle, CheckCircle, Info, Send, History } from 'lu
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { analyzeSymptoms } from '@/lib/mockData';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 interface SymptomResult {
@@ -13,6 +16,7 @@ interface SymptomResult {
 }
 
 export default function SymptomChecker() {
+  usePageTitle('Symptom Checker');
   const [symptoms, setSymptoms] = useState('');
   const [result, setResult] = useState<SymptomResult | null>(null);
   const [history, setHistory] = useState<SymptomResult[]>([]);
@@ -45,7 +49,11 @@ export default function SymptomChecker() {
         timestamp: new Date(),
       });
     }
-    
+
+    toast.success('Analysis complete', {
+      description: 'Scroll down to see your symptom analysis result.',
+    });
+
     setIsAnalyzing(false);
   };
 
@@ -175,15 +183,21 @@ export default function SymptomChecker() {
       )}
 
       {/* History Section */}
-      {history.length > 0 && (
-        <div className="bg-card rounded-2xl p-6 border border-border">
-          <div className="flex items-center gap-2 mb-4">
-            <History className="w-5 h-5 text-muted-foreground" />
-            <h3 className="font-semibold text-foreground">Recent Checks</h3>
-          </div>
+      <div className="bg-card rounded-2xl p-6 border border-border">
+        <div className="flex items-center gap-2 mb-4">
+          <History className="w-5 h-5 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">Recent Checks</h3>
+        </div>
+        {history.length === 0 ? (
+          <EmptyState
+            icon={History}
+            title="No symptom checks yet"
+            description="Describe your symptoms above and your recent analysis results will appear here."
+          />
+        ) : (
           <div className="space-y-3">
             {history.map((item, index) => (
-              <div 
+              <div
                 key={index}
                 className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg"
               >
@@ -205,8 +219,8 @@ export default function SymptomChecker() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Disclaimer */}
       <div className="bg-muted/50 rounded-xl p-4 border border-border">

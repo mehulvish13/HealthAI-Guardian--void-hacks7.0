@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, FileText, ClipboardList, Utensils, Stethoscope } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -25,6 +26,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, content, t
     else if (type === 'symptomCheck') filename = 'symptom-check.txt';
     a.download = filename;
     a.click();
+    // Release the blob URL after the download has started
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const getIcon = () => {
@@ -46,7 +49,12 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, content, t
         
         <ScrollArea className="flex-1 pr-4">
           <div className="prose prose-sm max-w-none dark:prose-invert p-6 bg-muted/30 rounded-lg">
-            <ReactMarkdown>{content}</ReactMarkdown>
+            <ReactMarkdown
+              rehypePlugins={[rehypeSanitize]}
+              urlTransform={(url) =>
+                /^(https?:|mailto:|tel:|#|\/)/.test(url) ? url : ''
+              }
+            >{content}</ReactMarkdown>
           </div>
         </ScrollArea>
         

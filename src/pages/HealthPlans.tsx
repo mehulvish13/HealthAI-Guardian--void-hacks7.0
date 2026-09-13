@@ -4,8 +4,10 @@ import { Button } from '@/components/ui/button';
 import { dietPlans, exerciseRoutines } from '@/lib/mockData';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { usePageTitle } from '@/hooks/usePageTitle';
 
 export default function HealthPlans() {
+  usePageTitle('Health Plans');
   const [selectedPlan, setSelectedPlan] = useState<'lowRisk' | 'mediumRisk' | 'highRisk'>('lowRisk');
   const [completedExercises, setCompletedExercises] = useState<string[]>([]);
 

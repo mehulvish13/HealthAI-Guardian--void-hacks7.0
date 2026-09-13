@@ -3,6 +3,10 @@ import { ScanFace, Upload, Sparkles, Trophy, RefreshCw, AlertTriangle, CheckCirc
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { toast } from 'sonner';
+
+const MAX_FILE_SIZE_MB = 10;
 
 interface HealthIndicator {
   name: string;
@@ -27,6 +31,7 @@ const healthIndicators = [
 ];
 
 export default function FaceAnalysis() {
+  usePageTitle('Face Analysis');
   const [image, setImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -39,11 +44,33 @@ export default function FaceAnalysis() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', {
+          description: 'Please upload an image file (JPG, PNG, etc.)',
+        });
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        toast.error('File too large', {
+          description: `Please upload an image smaller than ${MAX_FILE_SIZE_MB}MB (selected: ${(file.size / (1024 * 1024)).toFixed(1)}MB)`,
+        });
+        e.target.value = '';
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (event) => {
         setImage(event.target?.result as string);
         setResult(null);
         stopCamera();
+        toast.success('Photo uploaded', {
+          description: 'Your photo is ready for analysis.',
+        });
+      };
+      reader.onerror = () => {
+        toast.error('Upload failed', {
+          description: 'Could not read the file. Please try a different image.',
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -80,6 +107,17 @@ export default function FaceAnalysis() {
     }
   }, [isCameraActive]);
 
+  // Release the camera if the user navigates away while it's active.
+  // (No setState here - only track cleanup, to avoid unmount warnings.)
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -93,7 +131,7 @@ export default function FaceAnalysis() {
   };
 
   const capturePhoto = () => {
-    if (videoRef.current) {
+    if (videoRef.current && videoRef.current.videoWidth > 0) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
@@ -103,7 +141,14 @@ export default function FaceAnalysis() {
         setImage(canvas.toDataURL('image/jpeg'));
         setResult(null);
         stopCamera();
+        toast.success('Photo captured', {
+          description: 'Your photo is ready for analysis.',
+        });
       }
+    } else {
+      toast.error('Camera not ready', {
+        description: 'Please wait for the camera feed to start, then try again.',
+      });
     }
   };
 
@@ -168,6 +213,10 @@ export default function FaceAnalysis() {
       overallHealth,
       indicators: analyzedIndicators,
       recommendations,
+    });
+
+    toast.success('Analysis complete', {
+      description: `Overall health: ${overallHealth}. +${overallHealth === 'Good' ? 15 : overallHealth === 'Fair' ? 10 : 5} points earned.`,
     });
 
     setScore(prev => prev + (overallHealth === 'Good' ? 15 : overallHealth === 'Fair' ? 10 : 5));

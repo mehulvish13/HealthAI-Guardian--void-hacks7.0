@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { cn } from '@/lib/utils';
 
 export default function Auth() {
@@ -15,6 +16,8 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  usePageTitle(isLogin ? 'Sign In' : 'Create Account');
 
   const { login, signup } = useAuth();
   const navigate = useNavigate();

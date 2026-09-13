@@ -5,9 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { calculateDiabetesRisk, calculateStressRisk } from '@/lib/mockData';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
 export default function PredictiveAnalytics() {
+  usePageTitle('Risk Analytics');
   const [bmi, setBmi] = useState(24);
   const [sleepHours, setSleepHours] = useState(7);
   const [activityLevel, setActivityLevel] = useState(3);
@@ -17,11 +20,26 @@ export default function PredictiveAnalytics() {
   const [stressRisk, setStressRisk] = useState(0);
 
   const calculateRisks = () => {
+    if (bmi < 10 || bmi > 60) {
+      toast.error('Invalid BMI value', {
+        description: 'BMI must be between 10 and 60. Please adjust the slider.',
+      });
+      return;
+    }
+    if (sleepHours < 0 || sleepHours > 24) {
+      toast.error('Invalid sleep hours', {
+        description: 'Sleep hours must be between 0 and 24.',
+      });
+      return;
+    }
     const dRisk = calculateDiabetesRisk(bmi, sleepHours, activityLevel);
     const sRisk = calculateStressRisk(sleepHours, activityLevel, moodScore);
     setDiabetesRisk(dRisk);
     setStressRisk(sRisk);
     setShowResults(true);
+    toast.success('Risk analysis complete', {
+      description: `Diabetes risk: ${dRisk}% · Stress risk: ${sRisk}%`,
+    });
   };
 
   const getRiskLevel = (risk: number) => {

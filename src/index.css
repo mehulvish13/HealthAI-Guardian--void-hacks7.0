@@ -126,6 +126,17 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    overflow-x: hidden;
+    overflow-wrap: break-word;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }

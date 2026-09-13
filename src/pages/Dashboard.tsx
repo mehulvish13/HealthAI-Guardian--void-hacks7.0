@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   Heart, 
   Footprints, 
@@ -13,12 +13,17 @@ import { VitalCard } from '@/components/dashboard/VitalCard';
 import { ProgressRing } from '@/components/dashboard/ProgressRing';
 import { generateVitalSigns, type VitalSigns } from '@/lib/mockData';
 import { useToast } from '@/hooks/use-toast';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 export default function Dashboard() {
+  usePageTitle('Dashboard');
   const [vitals, setVitals] = useState<VitalSigns>(generateVitalSigns());
   const [heartRateHistory, setHeartRateHistory] = useState<{ time: string; value: number }[]>([]);
   const { toast } = useToast();
+  // Tracks whether a high-HR alert was already shown for the current episode,
+  // so we don't spam a destructive toast on every 5s tick.
+  const highHrAlertedRef = useRef(false);
 
   useEffect(() => {
     // Initial data
@@ -42,13 +47,18 @@ export default function Dashboard() {
         }));
       });
 
-      // Alert for high heart rate
+      // Alert once per high heart rate episode (not on every tick)
       if (newVitals.heartRate > 95) {
-        toast({
-          title: "⚠️ High Heart Rate Alert",
-          description: `Your heart rate is ${newVitals.heartRate} BPM. Consider taking a moment to relax.`,
-          variant: "destructive",
-        });
+        if (!highHrAlertedRef.current) {
+          highHrAlertedRef.current = true;
+          toast({
+            title: "⚠️ High Heart Rate Alert",
+            description: `Your heart rate is ${newVitals.heartRate} BPM. Consider taking a moment to relax.`,
+            variant: "destructive",
+          });
+        }
+      } else {
+        highHrAlertedRef.current = false;
       }
     }, 5000);
 
@@ -56,8 +66,8 @@ export default function Dashboard() {
   }, [toast]);
 
   const getHeartRateStatus = (hr: number) => {
-    if (hr < 60 || hr > 100) return 'warning';
-    if (hr > 95) return 'critical';
+    if (hr > 100 || hr < 50) return 'critical';
+    if (hr > 95 || hr < 60) return 'warning';
     return 'normal';
   };
 

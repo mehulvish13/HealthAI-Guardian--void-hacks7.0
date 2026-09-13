@@ -24,12 +24,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Check for existing session
-    const savedUser = localStorage.getItem('healthai_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    try {
+      const savedUser = localStorage.getItem('healthai_user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      }
+    } catch {
+      // Corrupted session data - clear it so the app can start fresh
+      localStorage.removeItem('healthai_user');
     }
     setIsLoading(false);
   }, []);
+
+  const generateId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    // Fallback for non-secure contexts where crypto.randomUUID is unavailable
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     // Mock login - in production, this would call an API
@@ -37,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (email && password.length >= 6) {
       const newUser: User = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         email,
         name: email.split('@')[0],
       };
@@ -54,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (email && password.length >= 6 && name) {
       const newUser: User = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         email,
         name,
       };
