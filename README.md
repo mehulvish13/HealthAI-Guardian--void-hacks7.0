@@ -59,8 +59,7 @@ A comprehensive AI-powered healthcare platform featuring predictive analytics, s
 
 ### AI & ML
 - **Google Gemini AI** - Advanced conversational AI with multimodal support
-  - `gemini-2.5-flash` - Chat and content generation
-  - `gemini-2.5-flash-preview-tts` - Text-to-speech voice synthesis
+  - `gemini-1.5-flash-latest` - Chat, content generation and TTS voice synthesis
 - **@google/genai** - Official Gemini SDK
 - **React Markdown** - Markdown rendering in chat
 
@@ -172,10 +171,10 @@ healthai-guardian/
 │   │   ├── dashboard/   # Dashboard-specific components
 │   │   ├── layout/      # Layout components (AppLayout, Sidebar)
 │   │   └── ui/          # shadcn/ui components
-│   ├── contexts/        # React contexts (Auth, Theme)
-│   ├── data/            # Dataset files (CSV) + Medical Knowledge
-│   │   ├── medicalKnowledge.ts  # 🆕 Medical database
-│   │   └── index.ts              # 🆕 Data exports
+│   ├── contexts/        # React contexts (Auth)
+│   ├── data/            # Medical knowledge base
+│   │   ├── medicalKnowledge.ts  # Medical database + emergency keywords
+│   │   └── index.ts              # Data exports
 │   ├── hooks/           # Custom React hooks
 │   ├── lib/             # Utilities and helpers
 │   ├── pages/           # Page components
@@ -189,7 +188,7 @@ healthai-guardian/
 │   ├── App.tsx          # Root component
 │   ├── main.tsx         # Entry point
 │   └── index.css        # Global styles and theme
-├── .env                 # 🆕 Environment variables (API keys)
+├── .env.example         # Template - copy to `.env` and add your key (`.env` is gitignored, never commit it)
 ├── package.json
 ├── tailwind.config.ts   # Tailwind configuration
 ├── tsconfig.json        # TypeScript configuration
@@ -255,12 +254,9 @@ System automatically detects critical keywords:
    - Nutritional guidance
    - 1-day menu (Breakfast, Lunch, Dinner, Snacks)
 
-## 📊 Available Datasets
+## 📊 Sample Data
 
-The application includes sample datasets for analysis:
-- `diabetes_dataset.csv` - Diabetes risk factors
-- `mri_dataset.csv` - Medical imaging data
-- `stress_dataset.csv` - Stress level indicators
+Demo vitals, diet plans, symptom info and analysis labels are hardcoded in `src/lib/mockData.ts` — no backend or database required.
 
 ## 🔧 Available Scripts
 
@@ -306,17 +302,18 @@ Main layout component with:
 
 | Route | Component | Description |
 |-------|-----------|-------------|
-| `/` | Index | Landing page |
+| `/` | Redirect | Redirects to `/auth` (or `/dashboard` if already logged in) |
 | `/auth` | Auth | Login/Register |
 | `/dashboard` | Dashboard | Main dashboard |
-| `/symptom-checker` | SymptomChecker | Symptom analysis |
-| `/predictive-analytics` | PredictiveAnalytics | Health predictions |
-| `/health-plans` | HealthPlans | Personalized plans |
-| `/chatbot` | ChatBot | 🆕 AI assistant with voice |
-| `/mri-analysis` | MRIAnalysis | Medical imaging |
+| `/symptoms` | SymptomChecker | Symptom analysis |
+| `/analytics` | PredictiveAnalytics | Health predictions |
+| `/plans` | HealthPlans | Personalized plans |
+| `/chat` | ChatBot | 🆕 AI assistant with voice |
+| `/mri` | MRIAnalysis | Medical imaging |
 | `/face-analysis` | FaceAnalysis | Facial health analysis |
 | `/cognitive-games` | CognitiveGames | Brain training |
 | `/stress-relief` | StressReliefGames | Relaxation games |
+| `*` | NotFound | 404 page |
 
 ## ⚙️ Environment Variables
 
@@ -356,6 +353,8 @@ Main layout component with:
 
 Perfect for testing and small applications! For production with high traffic, consider upgrading to paid tier.
 
+> If the chat shows a rate-limit (`429`) error, wait a minute and retry — the free tier allows ~15 requests/minute.
+
 ## 🔒 Security Best Practices
 
 - ✅ API key stored in `.env` (not committed to git)
@@ -363,6 +362,19 @@ Perfect for testing and small applications! For production with high traffic, co
 - ⚠️ Client-side API calls (acceptable for free tier)
 - 🔒 For production: Use server-side API proxy
 - 🔐 Never expose API keys in client code for paid services
+
+## 🛠️ ChatBot Customization
+
+- **Change the voice**: edit `voiceName` in `textToSpeech()` (`src/services/gemini.ts`)
+- **Emergency keywords**: edit `EMERGENCY_KEYWORDS` in `src/data/medicalKnowledge.ts`
+- **Medical knowledge**: extend `MEDICAL_KNOWLEDGE` in the same file
+
+## 🗺️ Roadmap
+
+- Backend proxy + secured API keys
+- Persisted conversations and user profiles
+- Multilingual support, wearables integration, telemedicine hand-off
+- PWA + offline history, RAG with vetted medical sources
 
 ## 🤝 Contributing
 
@@ -391,7 +403,6 @@ This project is open source and available under the MIT License.
 
 For issues, questions, or suggestions:
 - Open an issue on GitHub
-- Check `CHATBOT_SETUP.md` for detailed ChatBot configuration
 - Review browser console for runtime errors
 
 ## 🎉 Latest Updates
