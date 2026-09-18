@@ -136,6 +136,12 @@ export default function Auth() {
           </div>
 
           <div className="bg-card rounded-2xl p-8 border border-border shadow-lg">
+            <div className="flex justify-center mb-4">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/15 border border-warning/30 px-3 py-1 text-xs font-medium text-warning-foreground">
+                <Shield className="w-3 h-3" />
+                Demo Mode — No real accounts, data stays in your browser
+              </span>
+            </div>
             <div className="text-center mb-6">
               <h2 className="text-2xl font-bold text-foreground">
                 {isLogin ? 'Welcome Back' : 'Create Account'}
@@ -237,11 +243,9 @@ export default function Auth() {
               </Button>
             </form>
 
-            {isLogin && (
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Demo: Use any email and password (6+ chars)
-              </p>
-            )}
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              Demo: Use any email and password (6+ chars). Nothing is sent to a server.
+            </p>
           </div>
 
           {/* Footer */}

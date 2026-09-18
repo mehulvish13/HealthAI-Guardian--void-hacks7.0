@@ -1,7 +1,18 @@
 import { KnowledgeItem } from "@/types/chatbot";
 
+interface MedicalKnowledgeEntry {
+  definition: string;
+  description?: string;
+  causes?: string[];
+  symptoms?: string[];
+  warningSigns?: string[];
+  precautions?: string[];
+  tips?: string[];
+  whenToSeeDoctor?: string;
+}
+
 // Structured Medical Knowledge Base
-export const MEDICAL_KNOWLEDGE: Record<string, any> = {
+export const MEDICAL_KNOWLEDGE: Record<string, MedicalKnowledgeEntry> = {
   "fever": {
     definition: "A temporary increase in your body's average temperature, often a sign of an illness or infection.",
     causes: ["viral infection", "bacterial infection", "dehydration", "flu"],

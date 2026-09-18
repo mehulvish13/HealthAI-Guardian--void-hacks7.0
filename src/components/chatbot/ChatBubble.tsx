@@ -92,7 +92,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message }) => {
                     // Prevent images from breaking layout
                     img: ({node, ...props}) => <img {...props} style={{ maxWidth: '100%', height: 'auto' }} referrerPolicy="no-referrer" />,
                     // Better code blocks
-                    code: ({node, className, children, ...props}: any) => (
+                    code: ({ className, children, ...props }) => (
                       <code className={className ? `block p-2 rounded bg-muted overflow-x-auto text-xs ${className}` : "px-1 py-0.5 rounded bg-muted text-xs"} {...props}>{children}</code>
                     ),
                     // Block javascript: links even if sanitizer missed

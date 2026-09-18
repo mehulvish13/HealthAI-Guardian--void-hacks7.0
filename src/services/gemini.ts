@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality, type Part } from "@google/genai";
 import { HistoryItem, Role } from "@/types/chatbot";
 import { enhanceQueryWithContext } from "@/data/index";
 
@@ -9,6 +9,9 @@ const getAiClient = () => {
   }
   return new GoogleGenAI({ apiKey });
 };
+
+const CHAT_MODEL = 'gemini-2.5-flash';
+const TTS_MODEL = 'gemini-2.5-flash-preview-tts';
 
 /**
  * Sends text and optional audio input to Gemini.
@@ -46,7 +49,7 @@ export const sendToGemini = async (
   Current Request:
   `;
 
-  const parts: any[] = [];
+  const parts: Part[] = [];
   
   if (base64Audio) {
     parts.push({
@@ -66,7 +69,7 @@ export const sendToGemini = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash-latest',
+      model: CHAT_MODEL,
       contents: [
         {
           role: 'user',
@@ -84,20 +87,20 @@ export const sendToGemini = async (
       throw new Error("Empty response from AI model");
     }
     return responseText;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Gemini Chat Error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     
     // Check if it's a rate limit error
-    if (error?.message?.includes('429') || error?.message?.includes('quota') || error?.message?.includes('RESOURCE_EXHAUSTED')) {
+    if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('RESOURCE_EXHAUSTED')) {
       throw new Error('⏱️ Rate limit exceeded. Please wait a moment and try again. The free tier has limited requests per minute.');
     }
     
     // Check if it's a model not found error
-    if (error?.message?.includes('404') || error?.message?.includes('NOT_FOUND')) {
+    if (errorMessage.includes('404') || errorMessage.includes('NOT_FOUND')) {
       throw new Error('Model error. Please check your API key is valid and has access to Gemini models.');
     }
     
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`AI Error: ${errorMessage}. Please check your API key configuration.`);
   }
 };
@@ -164,7 +167,7 @@ export const generateSpecializedContent = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash-latest',
+      model: CHAT_MODEL,
       contents: [
         {
           role: 'user',
@@ -181,15 +184,15 @@ export const generateSpecializedContent = async (
       throw new Error("Empty response from specialized content generation");
     }
     return responseText;
-  } catch (error: any) {
+  } catch (error) {
     console.error("Specialized Content Error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     
     // Check if it's a rate limit error
-    if (error?.message?.includes('429') || error?.message?.includes('quota') || error?.message?.includes('RESOURCE_EXHAUSTED')) {
+    if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('RESOURCE_EXHAUSTED')) {
       throw new Error('⏱️ Rate limit exceeded. Please wait 15-30 seconds before generating reports. The free API has limited requests per minute.');
     }
     
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     throw new Error(`Content Generation Failed: ${errorMessage}`);
   }
 };
@@ -202,11 +205,11 @@ export const textToSpeech = async (text: string): Promise<string> => {
     const truncatedText = text.length > 300 ? text.substring(0, 300) + '...' : text;
     
     const response = await ai.models.generateContent({
-      model: 'gemini-1.5-flash-latest',
+      model: TTS_MODEL,
       contents: [
         {
           role: 'user',
-          parts: [{ text: truncatedText }]
+          parts: [{ text: `Say in a calm and reassuring voice: ${truncatedText}` }]
         }
       ],
       config: {

@@ -8,6 +8,17 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 
 type GameType = 'breathing' | 'bubble' | 'zen' | null;
 
+const PHASE_DURATIONS = {
+  inhale: 4,
+  hold: 4,
+  exhale: 6,
+} as const;
+
+const BUBBLE_COLORS = [
+  'bg-primary/60', 'bg-success/60', 'bg-warning/60', 
+  'bg-destructive/60', 'bg-secondary', 'bg-accent/60'
+];
+
 export default function StressReliefGames() {
   usePageTitle('Stress Relief');
   const [selectedGame, setSelectedGame] = useState<GameType>(null);
@@ -167,12 +178,6 @@ function BreathingExercise({ onComplete }: { onComplete: (minutes: number) => vo
   const [timer, setTimer] = useState(0);
   const [isActive, setIsActive] = useState(false);
 
-  const phaseDurations = {
-    inhale: 4,
-    hold: 4,
-    exhale: 6,
-  };
-
   useEffect(() => {
     if (!isActive) return;
 
@@ -180,15 +185,15 @@ function BreathingExercise({ onComplete }: { onComplete: (minutes: number) => vo
       setTimer(t => {
         const newTime = t + 1;
         
-        if (phase === 'inhale' && newTime >= phaseDurations.inhale) {
+        if (phase === 'inhale' && newTime >= PHASE_DURATIONS.inhale) {
           setPhase('hold');
           return 0;
         }
-        if (phase === 'hold' && newTime >= phaseDurations.hold) {
+        if (phase === 'hold' && newTime >= PHASE_DURATIONS.hold) {
           setPhase('exhale');
           return 0;
         }
-        if (phase === 'exhale' && newTime >= phaseDurations.exhale) {
+        if (phase === 'exhale' && newTime >= PHASE_DURATIONS.exhale) {
           setCycles(c => {
             const newCycles = c + 1;
             if (newCycles >= targetCycles) {
@@ -349,11 +354,6 @@ function BubblePop({ onComplete }: { onComplete: (minutes: number) => void }) {
   const [isActive, setIsActive] = useState(false);
   const [timer, setTimer] = useState(0);
 
-  const colors = [
-    'bg-primary/60', 'bg-success/60', 'bg-warning/60', 
-    'bg-destructive/60', 'bg-secondary', 'bg-accent/60'
-  ];
-
   useEffect(() => {
     if (!isActive) return;
 
@@ -378,7 +378,7 @@ function BubblePop({ onComplete }: { onComplete: (minutes: number) => void }) {
             x: Math.random() * 80 + 10,
             y: 100,
             size: Math.random() * 30 + 40,
-            color: colors[Math.floor(Math.random() * colors.length)],
+            color: BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)],
             popped: false,
           };
           return [...moved, newBubble];

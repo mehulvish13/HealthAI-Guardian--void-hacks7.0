@@ -3,31 +3,37 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AppLayout } from "@/components/layout/AppLayout";
-import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import SymptomChecker from "./pages/SymptomChecker";
-import PredictiveAnalytics from "./pages/PredictiveAnalytics";
-import HealthPlans from "./pages/HealthPlans";
-import ChatBot from "./pages/ChatBot";
-import MRIAnalysis from "./pages/MRIAnalysis";
-import FaceAnalysis from "./pages/FaceAnalysis";
-import CognitiveGames from "./pages/CognitiveGames";
-import StressReliefGames from "./pages/StressReliefGames";
-import NotFound from "./pages/NotFound";
+
+const Auth = lazy(() => import("./pages/Auth"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const SymptomChecker = lazy(() => import("./pages/SymptomChecker"));
+const PredictiveAnalytics = lazy(() => import("./pages/PredictiveAnalytics"));
+const HealthPlans = lazy(() => import("./pages/HealthPlans"));
+const ChatBot = lazy(() => import("./pages/ChatBot"));
+const MRIAnalysis = lazy(() => import("./pages/MRIAnalysis"));
+const FaceAnalysis = lazy(() => import("./pages/FaceAnalysis"));
+const CognitiveGames = lazy(() => import("./pages/CognitiveGames"));
+const StressReliefGames = lazy(() => import("./pages/StressReliefGames"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+function RouteLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <RouteLoader />;
   }
   
   if (!isAuthenticated) {
@@ -41,11 +47,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
+    return <RouteLoader />;
   }
   
   if (isAuthenticated) {
@@ -91,7 +93,9 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <AppRoutes />
+          <Suspense fallback={<RouteLoader />}>
+            <AppRoutes />
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

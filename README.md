@@ -4,10 +4,11 @@ A comprehensive AI-powered healthcare platform featuring predictive analytics, s
 
 ## ✨ Features
 
-### 🔐 Authentication
-- Secure user authentication with email/password
+### 🔐 Authentication (Demo Mode)
+- **Demo-only authentication** — any email + password (6+ chars) works; no data is sent to a server
+- Sessions stored locally in the browser (localStorage) via React Context
 - Protected routes for authenticated users
-- Session management with React Context
+- ⚠️ Not production auth. Wire Supabase/Firebase Auth (or a backend) before real users
 
 ### 📊 Dashboard
 - Real-time health metrics visualization

@@ -17,6 +17,8 @@ interface Card {
 
 const emojis = ['🧠', '❤️', '🌟', '🎯', '🔔', '🌈', '🎨', '🎭'];
 
+const shapes = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⬛', '⬜'];
+
 export default function CognitiveGames() {
   usePageTitle('Brain Games');
   const [selectedGame, setSelectedGame] = useState<GameType>(null);
@@ -312,8 +314,6 @@ function PatternGame({ onComplete }: { onComplete: (score: number) => void }) {
   const [options, setOptions] = useState<string[]>([]);
   const [correctAnswer, setCorrectAnswer] = useState('');
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
-
-  const shapes = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⬛', '⬜'];
 
   const generatePattern = useCallback(() => {
     const patternLength = Math.min(3 + level, 6);
